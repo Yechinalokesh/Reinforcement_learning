@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bhukkad Bhai's Strategic Samosa Quest!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Fredoka+One&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient-start: #FFD166; /* Sunny Yellow */
+      --bg-gradient-end: #EF476F;   /* Playful Pink */
+      --node-bg: rgba(255, 255, 255, 0.8);
+      --node-border: #06D6A0; /* Tealish Green */
+      --node-text: #073B4C;   /* Dark Blue */
+      --bhukkad-color: #118AB2; /* Bright Blue */
+      --bhukkad-glow: #00A6FB;
+      --samosa-swarg-color: #FFC43D;
+      --samosa-swarg-glow: #FFD700;
+      --text-color-dark: #073B4C;
+      --line-inactive: rgba(7, 59, 76, 0.2);
+      --line-active: var(--node-border);
+      --line-error: #EF476F;
+      --reward-positive-bg: rgba(6, 214, 160, 0.3);
+      --reward-positive-text: #04A777;
+      --reward-negative-bg: rgba(239, 71, 111, 0.3);
+      --reward-negative-text: #D62828;
+      --reward-neutral-bg: rgba(255, 209, 102, 0.4);
+      --reward-neutral-text: #D4A20F;
+      --stamina-bar-full: #4CAF50; /* Green for stamina */
+      --stamina-bar-low: #FF9800; /* Orange for low stamina */
+      --stamina-bar-empty: #F44336; /* Red for empty stamina */
+      --node-size: 80px;
+      --bhukkad-size: 35px;
+      --log-text-color: #073B4C;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(120deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      color: var(--text-color-dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding-top: 10px; /* Reduced top padding */
+      box-sizing: border-box;
+    }
+
+    .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 90%;
+        max-width: 900px; /* Max width for header */
+        margin-bottom: 5px;
+    }
+
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      color: var(--text-color-dark); font-size: 2.2em; /* Adjusted size */
+      text-shadow: 2px 2px 0px #fff, 3px 3px 0px rgba(6, 214, 160, 0.7);
+      letter-spacing: 1px;
+      margin: 0; /* Remove default margin */
+      text-align: center;
+      flex-grow: 1; /* Allow title to take space */
+    }
+
+    .status-bars {
+        display: flex;
+        gap: 20px; /* Space between score and stamina */
+        align-items: center;
+    }
+
+    #scoreBoard, #staminaDisplay {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-family: 'Fredoka One', cursive;
+        font-size: 1.1em;
+        color: var(--node-text);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        white-space: nowrap;
+    }
+    #scoreBoard span, #staminaValue { color: var(--bhukkad-color); }
+    #staminaBarContainer {
+        width: 100px;
+        height: 12px;
+        background-color: #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        display: inline-block;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+    #staminaBar {
+        height: 100%;
+        width: 100%; /* Initial full */
+        background-color: var(--stamina-bar-full);
+        border-radius: 6px;
+        transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+    }
+
+
+    .culinary-quest-map {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .map-content {
+        position: relative;
+        width: 850px;
+        height: 550px; /* Slightly reduced height */
+    }
+
+    .node {
+      width: var(--node-size); height: var(--node-size); border-radius: 20px;
+      background-color: var(--node-bg); border: 3px dashed var(--node-border);
+      box-shadow: 0 5px 15px rgba(7, 59, 76, 0.15); text-align: center;
+      font-weight: 700; position: absolute;
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out;
+      cursor: pointer; z-index: 5; color: var(--node-text);
+      display: flex; flex-direction: column; justify-content: center;
+      align-items: center; padding: 5px; box-sizing: border-box;
+    }
+    .node:hover { transform: scale(1.1); box-shadow: 0 8px 25px rgba(7, 59, 76, 0.25); background-color: rgba(255, 255, 255, 0.95); }
+    .node .node-code { font-family: 'Fredoka One', cursive; font-size: 30px; display: block; line-height: 1; color: var(--bhukkad-color);}
+    .node .node-name { font-size: 11px; display: block; margin-top: 2px; color: var(--node-text); line-height: 1.1; }
+    .node.active-bhukkad-location { transform: scale(1.15) rotate(3deg); border-color: var(--bhukkad-color); border-style: solid; box-shadow: 0 8px 20px rgba(17, 138, 178, 0.3); background-color: #E0F7FA; }
+    .node.error-path-node { border-color: var(--line-error) !important; border-style: solid !important; animation: shakeError 0.5s; }
+    @keyframes shakeError { 0%, 100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-5px) rotate(-2deg); } 50% { transform: translateX(5px) rotate(2deg); } 75% { transform: translateX(-5px) rotate(-2deg); } }
+    #S.node { border-color: var(--samosa-swarg-color); border-style: solid; background-color: rgba(255, 215, 0, 0.4); box-shadow: 0 0 25px var(--samosa-swarg-glow), 0 0 35px gold; }
+    #S.node .node-code { color: #E65100; }
+    #S.node.active-bhukkad-location, #S.node:hover { animation: goldenSamosaShine 1.5s infinite; }
+    @keyframes goldenSamosaShine { 0% { transform: scale(1.1) rotate(-2deg); box-shadow: 0 0 25px var(--samosa-swarg-glow), 0 0 35px gold; } 50% { transform: scale(1.25) rotate(2deg); box-shadow: 0 0 40px var(--samosa-swarg-glow), 0 0 55px gold, 0 0 15px #fff; } 100% { transform: scale(1.1) rotate(-2deg); box-shadow: 0 0 25px var(--samosa-swarg-glow), 0 0 35px gold; } }
+
+    #H { top: 240px; left: 60px; } #M { top: 240px; left: 230px; } /* Adjusted top slightly */
+    #G { top: 60px;  left: 230px; } #C { top: 420px; left: 230px; } /* Adjusted top slightly */
+    #T { top: 420px; left: 400px; } #A { top: 240px; left: 400px; }
+    #S { top: 240px; left: 570px; }
+
+    .bhukkad {
+      position: absolute; width: var(--bhukkad-size); height: var(--bhukkad-size);
+      background-color: var(--bhukkad-color); border: 3px solid #fff; border-radius: 50%;
+      z-index: 10;
+      transition: top 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), left 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      box-shadow: 0 0 15px 4px var(--bhukkad-glow); display: flex; justify-content: center;
+      align-items: center; font-size: 18px; color: white; font-family: 'Fredoka One', cursive;
+    }
+    .bhukkad::after { content: "😋"; font-size: 20px; animation: bhukkadWiggle 0.5s infinite alternate ease-in-out; }
+    @keyframes bhukkadWiggle { from { transform: rotate(-5deg) scale(1); } to { transform: rotate(5deg) scale(1.1); } }
+
+    .reward-popup {
+      position: fixed; bottom: 110px; left: 50%;
+      transform: translateX(-50%) translateY(15px) scale(0.9);
+      background: rgba(255,255,255,0.95); padding: 12px 22px; border-radius: 15px;
+      font-weight: 700; box-shadow: 0 6px 20px rgba(7, 59, 76, 0.2);
+      transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.3s ease; opacity: 0;
+      z-index: 150; border-top: 5px solid var(--node-border);
+      font-size: 15px; min-width: 320px; text-align: center; font-family: 'Poppins', sans-serif; color: var(--node-text);
+    }
+    .reward-popup.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    .reward-popup.positive { border-top-color: var(--reward-positive-text); background-color: #E0F2F1; }
+    .reward-popup.negative { border-top-color: var(--reward-negative-text); background-color: #FFEBEE; }
+    .reward-popup.neutral { border-top-color: var(--reward-neutral-text); background-color: #FFF9C4; }
+
+    .line-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    .connection-line { position: absolute; background-color: var(--line-inactive); height: 5px; border-radius: 3px; transform-origin: 0 50%; transition: background-color 0.5s ease, height 0.3s ease, box-shadow 0.3s ease; }
+    .connection-line.active-path { background-color: var(--line-active); height: 7px; box-shadow: 0 0 10px var(--line-active); }
+    .connection-line.error-path { background-color: var(--line-error) !important; box-shadow: 0 0 10px var(--line-error) !important; animation: errorLinePulse 0.7s infinite alternate; }
+    @keyframes errorLinePulse { from { opacity: 0.7; } to { opacity: 1; transform: scaleX(1.02);} }
+
+    .live-explanation-container {
+        position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px); border-top: 4px solid var(--node-border);
+        box-shadow: 0 -6px 20px rgba(6, 214, 160, 0.2); padding: 15px 25px;
+        box-sizing: border-box; z-index: 100; height: 90px; overflow-y: auto;
+    }
+    #liveExplanation { font-family: 'Share Tech Mono', monospace; font-size: 1.15em; color: var(--log-text-color); text-shadow: none; min-height: 1.3em; line-height: 1.5; white-space: pre-wrap; }
+    #liveExplanation .cursor { display: inline-block; width: 9px; height: 1.15em; background-color: var(--log-text-color); animation: blink 0.7s infinite; margin-left: 3px; vertical-align: text-bottom; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  </style>
+</head>
+<body>
+  <div class="game-header">
+    <h1>🥟 Bhukkad Bhai & The Lost Samosa! 🌶️</h1>
+    <div class="status-bars">
+        <div id="scoreBoard">Yummy Points: <span id="currentScore">0</span></div>
+        <div id="staminaDisplay">Stamina: <span id="staminaValue">100</span>
+            <div id="staminaBarContainer"><div id="staminaBar"></div></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="culinary-quest-map">
+    <div class="map-content" id="mapContent">
+        <div class="line-container" id="lineContainer"></div>
+        <div class="node" id="H" data-node-id="H"><span class="node-code">H</span><span class="node-name">Home Sweet Home</span></div>
+        <div class="node" id="M" data-node-id="M"><span class="node-code">M</span><span class="node-name">Market Mayhem</span></div>
+        <div class="node" id="G" data-node-id="G"><span class="node-code">G</span><span class="node-name">Gully of Gossip</span></div>
+        <div class="node" id="C" data-node-id="C"><span class="node-code">C</span><span class="node-name">Chai Stall Corner</span></div>
+        <div class="node" id="T" data-node-id="T"><span class="node-code">T</span><span class="node-name">Temple o' Temptations</span></div>
+        <div class="node" id="A" data-node-id="A"><span class="node-code">A</span><span class="node-name">Aroma Avenue</span></div>
+        <div class="node" id="S" data-node-id="S"><span class="node-code">S</span><span class="node-name">SAMOSA SWARG!</span></div>
+
+        <div class="bhukkad" id="bhukkad"></div>
+    </div>
+  </div>
+  <div class="reward-popup" id="snackReport">Snack Report</div>
+
+  <div class="live-explanation-container">
+    <div id="liveExplanation"><span class="cursor">❚</span></div>
+  </div>
+
+  <script>
+    const NODE_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--node-size'));
+    const BHUKKAD_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bhukkad-size'));
+
+    const nodeData = {
+      H: { top: 240, left: 60, name: "Home Base" },
+      M: { top: 240, left: 230, name: "Market Mayhem" },
+      G: { top: 60,  left: 230, name: "Gully of Gossip" },
+      C: { top: 420, left: 230, name: "Chai Stall Corner" },
+      T: { top: 420, left: 400, name: "Temple of Temptations" },
+      A: { top: 240, left: 400, name: "Aroma Avenue" },
+      S: { top: 240, left: 570, name: "Samosa Swarg" }
+    };
+
+    const nodeCenters = {};
+    for (const id in nodeData) {
+      nodeCenters[id] = {
+        x: nodeData[id].left + NODE_SIZE / 2,
+        y: nodeData[id].top + NODE_SIZE / 2
+      };
+    }
+
+    // Modified snackPoints to include stamina effects
+    const snackPoints = {
+      'H_M': { yummy: 5, stamina: 0 },
+      'M_G': { yummy: -25, stamina: -5 }, // Gossip gully is tiring AND unrewarding
+      'M_C': { yummy: 10, stamina: 20 },  // Chai stall gives energy!
+      'G_M': { yummy: -5, stamina: -5 },  // Backtracking is also tiring
+      'C_T': { yummy: -2, stamina: 0, message: "Resisted most temptations!" }, // Specific message
+      'T_A': { yummy: 15, stamina: 0 },
+      'A_S': { yummy: 100, stamina: 0 },
+    };
+    const STAMINA_COST_PER_MOVE = 8; // Universal cost for any move
+    const MAX_STAMINA = 100;
+
+    const mapConnections = {
+        H: ['M'], M: ['H', 'G', 'C'], G: ['M'],
+        C: ['M', 'T'], T: ['C', 'A'], A: ['T', 'S'], S: []
+    };
+    const wrongTurns = {'M_G': true};
+
+    const bhukkadEl = document.getElementById('bhukkad');
+    const snackReportPopupEl = document.getElementById('snackReport');
+    const lineContainerEl = document.getElementById('lineContainer');
+    const liveExplanationEl = document.getElementById('liveExplanation');
+    const currentScoreEl = document.getElementById('currentScore');
+    const staminaValueEl = document.getElementById('staminaValue');
+    const staminaBarEl = document.getElementById('staminaBar');
+    const allNodes = document.querySelectorAll('.node');
+
+    let currentNodeId = 'H';
+    let totalYummyPoints = 0;
+    let currentStamina = MAX_STAMINA;
+    let gameActive = true;
+    const TYPING_SPEED = 50;
+    let activeLineEl = null;
+
+    function typeWriter(text, onComplete, append = false) {
+        if (!gameActive && !text.includes("GAME OVER") && !text.includes("CONGRATS")) return; // Don't type normal messages if game over
+
+        let currentLogText = append ? liveExplanationEl.innerText.replace('❚', '') : '';
+        if (append && currentLogText.length > 0) currentLogText += "\n"; // Add newline if appending
+
+        let i = 0;
+        const cursorSpan = '<span class="cursor">❚</span>';
+
+        function type() {
+            if (i < text.length) {
+                currentLogText += text.charAt(i);
+                liveExplanationEl.innerHTML = currentLogText.replace(/\n/g, '<br>') + cursorSpan; // Replace \n with <br> for display
+                i++;
+                liveExplanationEl.scrollTop = liveExplanationEl.scrollHeight;
+                setTimeout(type, TYPING_SPEED);
+            } else {
+                liveExplanationEl.innerHTML = currentLogText.replace(/\n/g, '<br>') + cursorSpan;
+                liveExplanationEl.scrollTop = liveExplanationEl.scrollHeight;
+                if (onComplete) setTimeout(onComplete, 250);
+            }
+        }
+        type();
+    }
+
+    function createLineElement(fromNodeId, toNodeId) {
+        const from = nodeCenters[fromNodeId]; const to = nodeCenters[toNodeId];
+        const lineId = `line-${fromNodeId}-${toNodeId}`;
+        const reverseLineId = `line-${toNodeId}-${fromNodeId}`;
+        if (document.getElementById(lineId) || document.getElementById(reverseLineId)) return;
+        const dx = to.x - from.x; const dy = to.y - from.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const line = document.createElement('div');
+        line.id = lineId; line.classList.add('connection-line');
+        line.style.width = `${length}px`; line.style.left = `${from.x}px`;
+        line.style.top = `${from.y - 2.5}px`; line.style.transform = `rotate(${angle}deg)`;
+        lineContainerEl.appendChild(line);
+    }
+
+    function highlightCurrentNode() {
+        allNodes.forEach(n => n.classList.remove('active-bhukkad-location')); // Keep error-path-node if it was set
+        const currentBhukkadNodeEl = document.getElementById(currentNodeId);
+        if (currentBhukkadNodeEl) {
+            currentBhukkadNodeEl.classList.add('active-bhukkad-location');
+        }
+    }
+    
+    function updateScoreDisplay() {
+        currentScoreEl.textContent = totalYummyPoints;
+    }
+
+    function updateStaminaDisplay() {
+        staminaValueEl.textContent = currentStamina;
+        const staminaPercentage = (currentStamina / MAX_STAMINA) * 100;
+        staminaBarEl.style.width = `${staminaPercentage}%`;
+
+        if (staminaPercentage <= 25) {
+            staminaBarEl.style.backgroundColor = 'var(--stamina-bar-empty)';
+        } else if (staminaPercentage <= 50) {
+            staminaBarEl.style.backgroundColor = 'var(--stamina-bar-low)';
+        } else {
+            staminaBarEl.style.backgroundColor = 'var(--stamina-bar-full)';
+        }
+    }
+
+    function showSnackReport(text, type) {
+        snackReportPopupEl.textContent = text;
+        snackReportPopupEl.className = 'reward-popup show ' + type;
+        setTimeout(() => snackReportPopupEl.classList.remove('show'), 2000);
+    }
+
+    function processMove(targetNodeId) {
+        if (!gameActive || currentNodeId === targetNodeId) return;
+
+        // Deduct stamina BEFORE making the move
+        currentStamina -= STAMINA_COST_PER_MOVE;
+        
+        const from = currentNodeId;
+        const to = targetNodeId;
+
+        const moveData = snackPoints[`${from}_${to}`] || { yummy: 0, stamina: 0 }; // Default if not in snackPoints
+        const yummyPointsValue = moveData.yummy;
+        const staminaChange = moveData.stamina || 0; // Stamina change from the location/move itself
+
+        currentStamina += staminaChange; // Apply stamina change from move
+        currentStamina = Math.max(0, Math.min(MAX_STAMINA, currentStamina)); // Clamp stamina
+        
+        updateStaminaDisplay();
+
+        if (currentStamina <= 0 && from !== 'S') { // Check if out of stamina, but not if already at Samosa Swarg
+            gameActive = false;
+            bhukkadEl.style.top = (nodeCenters[to].y - BHUKKAD_SIZE / 2) + 'px'; // Move visually
+            bhukkadEl.style.left = (nodeCenters[to].x - BHUKKAD_SIZE / 2) + 'px';
+            currentNodeId = to; // Update state
+            highlightCurrentNode();
+            typeWriter(`\nGAME OVER! Bhukkad Bhai ran out of stamina at ${nodeData[to].name}! Quest failed... 😩`, null, true);
+            showSnackReport(`😵 Out of Stamina! Game Over. Final Score: ${totalYummyPoints}`, 'negative');
+            bhukkadEl.style.filter = 'grayscale(100%)'; // Visual cue for game over
+            return;
+        }
+        
+        totalYummyPoints += yummyPointsValue;
+        updateScoreDisplay();
+
+        const isWrongTurn = wrongTurns[`${from}_${to}`] || (yummyPointsValue < -10);
+
+        bhukkadEl.style.top = (nodeCenters[to].y - BHUKKAD_SIZE / 2) + 'px';
+        bhukkadEl.style.left = (nodeCenters[to].x - BHUKKAD_SIZE / 2) + 'px';
+
+        if (activeLineEl) activeLineEl.classList.remove('active-path', 'error-path');
+        activeLineEl = document.getElementById(`line-${from}-${to}`) || document.getElementById(`line-${to}-${from}`);
+        if (activeLineEl) {
+            activeLineEl.classList.add('active-path');
+            if (isWrongTurn) activeLineEl.classList.add('error-path');
+        }
+        
+        const previousBhukkadNodeEl = document.getElementById(from); // Node Bhukkad is leaving
+        if(previousBhukkadNodeEl && !wrongTurns[`${from}_${to}`] && !(snackPoints[`${from}_${to}`] && snackPoints[`${from}_${to}`].yummy < -10)){
+            previousBhukkadNodeEl.classList.remove('error-path-node'); // Clear error from previous node if current move is not bad
+        }
+
+        currentNodeId = to;
+        highlightCurrentNode();
+        if(isWrongTurn) document.getElementById(to).classList.add('error-path-node');
+
+        let explanation = `Bhukkad Bhai moves from ${nodeData[from].name} to ${nodeData[to].name}. `;
+        if(moveData.message) explanation += moveData.message + " ";
+
+        if (isWrongTurn) {
+          explanation += `That was a costly detour! `;
+        } else if (yummyPointsValue < 0 && yummyPointsValue > -10) {
+          explanation += `A slight misstep. `;
+        }
+        explanation += `\nSNACK LOG: Yummy Points: ${yummyPointsValue}, Stamina Cost: ${STAMINA_COST_PER_MOVE}, Stamina Gain: ${staminaChange}. Total Yummy: ${totalYummyPoints}, Stamina Left: ${currentStamina}.`;
+        typeWriter(explanation, null, true);
+
+        const icon = yummyPointsValue > 10 ? '🌟' : yummyPointsValue > 0 ? '👍' : yummyPointsValue < -10 ? '😩' : yummyPointsValue < 0 ? '🤔' : '➡️';
+        const message = `${icon} ${from}→${to} | Pts: ${yummyPointsValue} | Total: ${totalYummyPoints}`;
+        showSnackReport(message, yummyPointsValue > 0 ? 'positive' : (yummyPointsValue < 0 ? 'negative' : 'neutral'));
+
+        if (to === 'S') {
+            gameActive = false;
+            typeWriter(`\n\n🎉 HOORAY! Bhukkad Bhai found Samosa Swarg! The Legendary Golden Samosa is HIS! Final Score: ${totalYummyPoints} 😋`, null, true);
+            document.getElementById('S').classList.add('active-bhukkad-location');
+             bhukkadEl.style.animation = 'none'; // Stop wiggle
+             bhukkadEl.innerHTML = '🏆'; // Change to trophy
+        }
+    }
+
+    function handleNodeClick(event) {
+        if (!gameActive) return;
+        const clickedNodeId = event.currentTarget.dataset.nodeId;
+        if (mapConnections[currentNodeId] && mapConnections[currentNodeId].includes(clickedNodeId)) {
+            processMove(clickedNodeId);
+        } else if (clickedNodeId !== currentNodeId) { // Don't log if clicking current node
+            typeWriter(`\nCan't go from ${nodeData[currentNodeId].name} to ${nodeData[clickedNodeId].name} directly! Bhukkad needs a clear path.`, null, true);
+            const clickedNodeEl = document.getElementById(clickedNodeId);
+            if (clickedNodeEl) {
+                clickedNodeEl.style.animation = 'shakeError 0.3s';
+                setTimeout(() => clickedNodeEl.style.animation = '', 300);
+            }
+        }
+    }
+
+    function initGame() {
+        for (const startNode in mapConnections) {
+            mapConnections[startNode].forEach(endNode => createLineElement(startNode, endNode));
+        }
+        bhukkadEl.style.top = (nodeCenters[currentNodeId].y - BHUKKAD_SIZE / 2) + 'px';
+        bhukkadEl.style.left = (nodeCenters[currentNodeId].x - BHUKKAD_SIZE / 2) + 'px';
+        highlightCurrentNode();
+        updateScoreDisplay();
+        updateStaminaDisplay(); // Initial stamina display
+
+        allNodes.forEach(nodeEl => nodeEl.addEventListener('click', handleNodeClick));
+
+        typeWriter("Bhukkad Bhai's STOMACH is RUMBLING! Help him find the Legendary Golden Samosa. Click an adjacent location to move. Watch your Stamina!", () => {});
+    }
+
+    window.onload = initGame;
+  </script>
+</body>
+</html>
